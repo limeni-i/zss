@@ -1,0 +1,55 @@
+<div class="form-container">
+  <h2>Registracija novog korisnika</h2>
+
+  <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+    
+    <div class="form-group">
+      <label for="name">Ime i prezime</label>
+      <input id="name" type="text" formControlName="name" placeholder="Unesite ime i prezime">
+      <div *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched" class="error-message">
+        <small *ngIf="registerForm.get('name')?.errors?.['required']">Ime je obavezno.</small>
+      </div>
+    </div>
+
+    
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input id="email" type="email" formControlName="email" placeholder="Unesite email">
+      <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched" class="error-message">
+        <small *ngIf="registerForm.get('email')?.errors?.['required']">Email je obavezan.</small>
+        <small *ngIf="registerForm.get('email')?.errors?.['email']">Unesite validnu email adresu.</small>
+      </div>
+    </div>
+
+    
+    <div class="form-group">
+      <label for="password">Lozinka</label>
+      <input id="password" type="password" formControlName="password" placeholder="Minimum 6 karaktera">
+      <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched" class="error-message">
+        <small *ngIf="registerForm.get('password')?.errors?.['required']">Lozinka je obavezna.</small>
+        <small *ngIf="registerForm.get('password')?.errors?.['minLength']">Lozinka mora imati bar 6 karaktera.</small>
+      </div>
+    </div>
+
+    
+    <div class="form-group">
+        <label for="role">Ja sam:</label>
+        <select id="role" formControlName="role">
+            <option value="" disabled>-- Izaberite ulogu --</option>
+            <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
+        </select>
+        <div *ngIf="registerForm.get('role')?.invalid && registerForm.get('role')?.touched" class="error-message">
+            <small *ngIf="registerForm.get('role')?.errors?.['required']">Odabir uloge je obavezan.</small>
+        </div>
+    </div>
+
+   
+    <div *ngIf="errorMessage" class="server-error">
+      {{ errorMessage }}
+    </div>
+
+    <button type="submit" [disabled]="registerForm.invalid">Registruj se</button>
+  </form>
+
+  <p>Već imate nalog? <a routerLink="/auth/login">Ulogujte se</a></p>
+</div>
