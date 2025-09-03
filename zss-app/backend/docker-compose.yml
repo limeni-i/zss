@@ -1,0 +1,53 @@
+services:
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - zss-network
+
+  sso_service:
+    build: ./sso_service
+    container_name: sso_service
+    ports:
+      - "5001:5001"
+    env_file:
+      - ./sso_service/.env
+    depends_on:
+      - mongo
+    networks:
+      - zss-network
+
+  health_service:
+    build: ./health_service
+    container_name: health_service
+    ports:
+      - "5002:5002"
+    env_file:
+      - ./health_service/.env
+    depends_on:
+      - mongo
+    networks:
+      - zss-network
+
+  school_service:
+    build: ./school_service
+    container_name: school_service
+    ports:
+      - "5003:5003"
+    env_file:
+      - ./school_service/.env
+    depends_on:
+      - mongo
+    networks:
+      - zss-network
+
+volumes:
+  mongo-data:
+
+networks:
+  zss-network:
+    driver: bridge
