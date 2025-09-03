@@ -1,0 +1,33 @@
+<div class="dashboard-container">
+  <h2>Nastavnik Panel</h2>
+
+  <div class="card">
+    <h3>Evidentiraj izostanak</h3>
+    <form [formGroup]="absenceForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="student">Izaberi učenika</label>
+        <select id="student" formControlName="student_id">
+          <option value="" disabled>-- Učenici --</option>
+          <option *ngFor="let s of students" [value]="s._id.$oid">{{ s.name }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="date_from">Datum od</label>
+        <input id="date_from" type="date" formControlName="date_from">
+      </div>
+      <div class="form-group">
+        <label for="date_to">Datum do</label>
+        <input id="date_to" type="date" formControlName="date_to">
+      </div>
+       <div class="form-group">
+        <label for="reason">Razlog (opciono)</label>
+        <input id="reason" type="text" formControlName="reason">
+      </div>
+
+      <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+      <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+      <button type="submit" [disabled]="absenceForm.invalid">Evidentiraj</button>
+    </form>
+  </div>
+</div>

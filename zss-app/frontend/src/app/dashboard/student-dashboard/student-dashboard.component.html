@@ -1,0 +1,11 @@
+<h2>Moje Ocene (Učenik)</h2>
+<div *ngIf="grades.length > 0; else noGrades">
+  <ul>
+    <li *ngFor="let grade of grades">
+      Predmet: {{ grade.subject }} | Ocena: {{ grade.value }} | Datum: {{ grade.date }}
+    </li>
+  </ul>
+</div>
+<ng-template #noGrades>
+  <p>Nema unetih ocena.</p>
+</ng-template>

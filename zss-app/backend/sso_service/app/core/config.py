@@ -6,3 +6,4 @@ load_dotenv()
 class Config:
     SECRET_KEY = os.getenv('SECRET_KEY')
     MONGO_URI = os.getenv('MONGO_URI')
+    SSO_SERVICE_URL = os.getenv('SSO_SERVICE_URL')

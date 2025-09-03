@@ -1,0 +1,45 @@
+<div class="dashboard-container">
+  <h2>Lekar Panel</h2>
+
+  <div class="card">
+    <h3>Izdaj školsko opravdanje</h3>
+    <form [formGroup]="certificateForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="student">Izaberi učenika</label>
+        <select id="student" formControlName="student_id">
+          <option value="" disabled>-- Učenici --</option>
+          <option *ngFor="let s of students" [value]="s._id.$oid">{{ s.name }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="date_from">Datum od</label>
+        <input id="date_from" type="date" formControlName="date_from">
+      </div>
+      <div class="form-group">
+        <label for="date_to">Datum do</label>
+        <input id="date_to" type="date" formControlName="date_to">
+      </div>
+       <div class="form-group">
+        <label for="reason">Razlog</label>
+        <input id="reason" type="text" formControlName="reason">
+      </div>
+
+      <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+      <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+      <button type="submit" [disabled]="certificateForm.invalid">Izdaj i opravdaj</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>Moji zakazani termini</h3>
+    <div *ngIf="appointments.length > 0; else noAppointments">
+      <ul>
+        <li *ngFor="let app of appointments">
+          Datum: {{ app.date | date:'dd.MM.yyyy HH:mm' }} | Status: {{ app.status }} | Pacijent ID: {{ app.patient_id }}
+        </li>
+      </ul>
+    </div>
+    <ng-template #noAppointments><p>Nemate zakazanih termina.</p></ng-template>
+  </div>
+</div>

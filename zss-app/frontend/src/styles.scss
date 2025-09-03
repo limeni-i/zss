@@ -71,3 +71,30 @@ button:not(:disabled):hover {
   margin-bottom: 1rem;
   text-align: center;
 }
+
+
+/* Stilovi za Dashboard */
+.dashboard-container {
+  max-width: 800px;
+  margin: 2rem auto;
+}
+
+.card {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+}
+
+.card h3 {
+  margin-top: 0;
+}
+
+.success-message {
+  color: #27ae60;
+  background-color: #e9f7ef;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
