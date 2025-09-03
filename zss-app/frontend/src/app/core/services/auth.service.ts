@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -9,7 +9,7 @@ import { environment } from '../../../environments/environment';
 })
 export class AuthService {
   private apiUrl = environment.ssoApiUrl;
-
+  
   constructor(private http: HttpClient) { }
 
   register(userData: any): Observable<any> {
@@ -19,7 +19,6 @@ export class AuthService {
   login(credentials: any): Observable<any> {
     return this.http.post<{ token: string }>(`${this.apiUrl}/login`, credentials).pipe(
       tap(response => {
-        // Kada dobijemo token, čuvamo ga u localStorage
         localStorage.setItem('authToken', response.token);
       })
     );
@@ -40,4 +39,10 @@ export class AuthService {
   getUsers(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/users`);
   }
+
+  getUsersByRole(role: string): Observable<any[]> {
+  return this.http.get<any[]>(`${this.apiUrl}/users`).pipe(
+    map(users => users.filter(user => user.role === role))
+  );
+}
 }

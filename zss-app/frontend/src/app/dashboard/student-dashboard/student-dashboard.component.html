@@ -1,11 +1,32 @@
-<h2>Moje Ocene (Učenik)</h2>
-<div *ngIf="grades.length > 0; else noGrades">
-  <ul>
-    <li *ngFor="let grade of grades">
-      Predmet: {{ grade.subject }} | Ocena: {{ grade.value }} | Datum: {{ grade.date }}
-    </li>
-  </ul>
+<div class="dashboard-container">
+  <h2>Učenik Panel</h2>
+  <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+
+  <div class="card">
+    <h3>Moje Ocene</h3>
+    <ul><li *ngFor="let grade of grades">{{grade.subject}}: {{grade.value}}</li></ul>
+  </div>
+
+  <div class="card">
+    <h3>Moji Izostanci</h3>
+    <table>
+      <thead><tr><th>Period</th><th>Razlog</th><th>Status</th><th>Akcija</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let absence of absences">
+          <td>{{ absence.date_from | date }} - {{ absence.date_to | date }}</td>
+          <td>{{ absence.reason }}</td>
+          <td>{{ absence.justification_status }}</td>
+          <td>
+            <div *ngIf="absence.justification_status === 'NIJE_ZATRAZENO'">
+              <select [(ngModel)]="selectedDoctorId">
+                <option value="" disabled>Izaberi lekara</option>
+                <option *ngFor="let doc of doctors" [value]="doc._id.$oid">{{ doc.name }}</option>
+              </select>
+              <button (click)="requestJustification(absence)">Zatraži opravdanje</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
-<ng-template #noGrades>
-  <p>Nema unetih ocena.</p>
-</ng-template>

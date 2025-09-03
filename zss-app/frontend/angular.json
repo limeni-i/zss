@@ -65,10 +65,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "zss-app:build:production"
+              "buildTarget": "zss-app:build:production"
             },
             "development": {
-              "browserTarget": "zss-app:build:development"
+              "buildTarget": "zss-app:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -76,7 +76,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "zss-app:build"
+            "buildTarget": "zss-app:build"
           }
         },
         "test": {

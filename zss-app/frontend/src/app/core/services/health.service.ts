@@ -15,11 +15,19 @@ export class HealthService {
     return this.http.get<any[]>(`${this.apiUrl}/appointments`);
   }
   
-  scheduleAppointment(data: { doctor_id: string, date: string }): Observable<any> {
+  scheduleAppointment(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/appointments`, data);
   }
 
-  issueCertificate(data: { student_id: string, date_from: string, date_to: string, reason: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/reports/certificate`, data);
+  getJustificationRequests(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/justifications`);
+  }
+
+  approveRequest(requestId: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/justifications/${requestId}/approve`, {});
+  }
+
+  rejectRequest(requestId: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/justifications/${requestId}/reject`, {});
   }
 }

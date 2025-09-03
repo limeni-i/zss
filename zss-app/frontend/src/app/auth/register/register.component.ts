@@ -12,7 +12,7 @@ export class RegisterComponent implements OnInit {
   registerForm!: FormGroup;
   errorMessage: string | null = null;
 
-  roles = ['PACIJENT', 'LEKAR', 'UCENIK', 'NASTAVNIK', 'RODITELJ'];
+  roles = ['PACIJENT', 'LEKAR', 'UCENIK', 'NASTAVNIK', 'RODITELJ', 'ADMIN'];
 
   constructor(
     private fb: FormBuilder,

@@ -11,11 +11,30 @@ export class SchoolService {
 
   constructor(private http: HttpClient) { }
 
+  // Ocene
+  createGrade(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/grades`, data);
+  }
   getGrades(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/grades`);
   }
-  
-  recordAbsence(data: { student_id: string, date_from: string, date_to: string, reason: string }): Observable<any> {
+
+  // Izostanci
+  recordAbsence(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/absences`, data);
+  }
+  getAbsences(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/absences`);
+  }
+  requestJustification(absenceId: string, data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/absences/${absenceId}/request-justification`, data);
+  }
+
+  // Poruke
+  sendMessage(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/messages`, data);
+  }
+  getConversation(otherUserId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/messages/conversation/${otherUserId}`);
   }
 }

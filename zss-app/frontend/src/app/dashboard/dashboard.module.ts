@@ -1,12 +1,15 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+
 
 import { DashboardRoutingModule } from './dashboard-routing.module';
 import { PatientDashboardComponent } from './patient-dashboard/patient-dashboard.component';
 import { DoctorDashboardComponent } from './doctor-dashboard/doctor-dashboard.component';
 import { StudentDashboardComponent } from './student-dashboard/student-dashboard.component';
 import { TeacherDashboardComponent } from './teacher-dashboard/teacher-dashboard.component';
+import { ParentDashboardComponent } from './parent-dashboard/parent-dashboard.component';
+import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard.component';
 
 
 @NgModule({
@@ -14,12 +17,17 @@ import { TeacherDashboardComponent } from './teacher-dashboard/teacher-dashboard
     PatientDashboardComponent,
     DoctorDashboardComponent,
     StudentDashboardComponent,
-    TeacherDashboardComponent
+    TeacherDashboardComponent,
+    ParentDashboardComponent,
+    AdminDashboardComponent
   ],
+
   imports: [
     CommonModule,
     DashboardRoutingModule,
-    ReactiveFormsModule 
+    ReactiveFormsModule,
+    FormsModule
   ]
 })
+
 export class DashboardModule { }

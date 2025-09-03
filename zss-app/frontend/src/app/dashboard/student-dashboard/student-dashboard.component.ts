@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { AuthService } from 'src/app/core/services/auth.service';
 import { SchoolService } from 'src/app/core/services/school.service';
 
 @Component({
@@ -8,12 +9,36 @@ import { SchoolService } from 'src/app/core/services/school.service';
 })
 export class StudentDashboardComponent implements OnInit {
   grades: any[] = [];
+  absences: any[] = [];
+  doctors: any[] = [];
+  selectedDoctorId: string = '';
+  successMessage: string | null = null;
 
-  constructor(private schoolService: SchoolService) { }
+  constructor(
+    private schoolService: SchoolService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
-    this.schoolService.getGrades().subscribe(data => {
-      this.grades = data;
+    this.loadData();
+    this.authService.getUsersByRole('LEKAR').subscribe(data => this.doctors = data);
+  }
+
+  loadData() {
+    this.schoolService.getGrades().subscribe(data => this.grades = data);
+    this.schoolService.getAbsences().subscribe(data => this.absences = data);
+  }
+
+  requestJustification(absence: any) {
+    if (!this.selectedDoctorId) {
+      alert("Molimo izaberite lekara.");
+      return;
+    }
+    const payload = { doctor_id: this.selectedDoctorId };
+    this.schoolService.requestJustification(absence._id.$oid, payload).subscribe(() => {
+      this.successMessage = "Zahtev uspešno poslat!";
+      this.loadData();
+      setTimeout(() => this.successMessage = null, 3000);
     });
   }
 }

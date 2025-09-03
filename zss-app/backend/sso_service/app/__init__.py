@@ -12,7 +12,7 @@ def create_app(config_class=Config):
     mongo.init_app(app)
     bcrypt.init_app(app)
     
-    CORS(app)
+    CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}})
     
     app.register_blueprint(auth_bp, url_prefix='/api')
     app.register_blueprint(user_bp, url_prefix='/api')
