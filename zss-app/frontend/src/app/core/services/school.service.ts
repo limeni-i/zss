@@ -30,11 +30,23 @@ export class SchoolService {
     return this.http.post(`${this.apiUrl}/absences/${absenceId}/request-justification`, data);
   }
 
-  // Poruke
   sendMessage(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/messages`, data);
   }
   getConversation(otherUserId: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/messages/conversation/${otherUserId}`);
   }
+
+  getGradesPdf(): Observable<Blob> {
+  return this.http.get(`${this.apiUrl}/grades/export-pdf`, {
+    responseType: 'blob'
+  });
+  }
+
+  downloadJustificationPdf(absenceId: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/absences/${absenceId}/download-justification`, {
+      responseType: 'blob'
+    });
+  }
+
 }

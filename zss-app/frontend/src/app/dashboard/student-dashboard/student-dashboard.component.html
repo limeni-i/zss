@@ -4,7 +4,9 @@
 
   <div class="card">
     <h3>Moje Ocene</h3>
-    <ul><li *ngFor="let grade of grades">{{grade.subject}}: {{grade.value}}</li></ul>
+    <ul><li *ngFor="let grade of grades">{{grade.subject}}: {{grade.value}}</li>
+    <li><button (click)="downloadGradesPdf()" style="float: right;">Preuzmi PDF</button></li>
+    </ul>
   </div>
 
   <div class="card">

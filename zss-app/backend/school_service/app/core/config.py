@@ -8,3 +8,4 @@ class Config:
     SECRET_KEY = os.getenv('SECRET_KEY')
     MONGO_URI = os.getenv('MONGO_URI')
     HEALTH_SERVICE_URL = os.getenv('HEALTH_SERVICE_URL')
+    SSO_SERVICE_URL = os.getenv('SSO_SERVICE_URL')

@@ -9,7 +9,8 @@ from .api.message_routes import message_bp
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
-    mongo.init_app(app)
+    mongo.init_app(app)    
+
     CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}})
     
     app.register_blueprint(grade_bp, url_prefix='/api')

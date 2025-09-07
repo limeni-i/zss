@@ -103,4 +103,15 @@ export class TeacherDashboardComponent implements OnInit {
       this.conversation = data;
     });
   }
+
+  downloadPdf(absenceId: string) {
+  this.schoolService.downloadJustificationPdf(absenceId).subscribe(blob => {
+    const a = document.createElement('a');
+    const objectUrl = URL.createObjectURL(blob);
+    a.href = objectUrl;
+    a.download = 'opravdanje.pdf';
+    a.click();
+    URL.revokeObjectURL(objectUrl);
+  });
+}
 }

@@ -3,7 +3,14 @@
   <div class="card">
     <h3>Zahtevi za opravdanje</h3>
     <table>
-      <thead><tr><th>Učenik ID</th><th>Razlog</th><th>Status</th><th>Akcije</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Učenik ID</th>
+          <th>Razlog</th>
+          <th>Status</th>
+          <th>Akcije</th>
+        </tr>
+      </thead>
       <tbody>
         <tr *ngFor="let req of requests">
           <td>{{ req.student_id }}</td>
@@ -13,6 +20,7 @@
             <button (click)="approve(req._id.$oid)">Odobri</button>
             <button (click)="reject(req._id.$oid)">Odbij</button>
           </td>
+          
         </tr>
       </tbody>
     </table>

@@ -7,7 +7,8 @@ class Absence:
         self.reason = reason
         self.is_excused = is_excused
         self.justification_status = "NIJE_ZATRAZENO" 
-        self.requested_doctor_id = None 
+        self.requested_doctor_id = None
+        self.justification_pdf_id = None
 
     def to_document(self):
         return self.__dict__

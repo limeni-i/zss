@@ -26,4 +26,5 @@ export class DoctorDashboardComponent implements OnInit {
   reject(requestId: string) {
     this.healthService.rejectRequest(requestId).subscribe(() => this.loadRequests());
   }
+
 }

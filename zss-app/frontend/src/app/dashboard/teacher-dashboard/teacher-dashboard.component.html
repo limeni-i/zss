@@ -1,22 +1,45 @@
 <div class="dashboard-container">
   <h2>Nastavnik Panel</h2>
   <div class="tabs">
-    <button [class.active]="currentTab === 'grades'" (click)="currentTab = 'grades'">Ocene</button>
-    <button [class.active]="currentTab === 'absences'" (click)="currentTab = 'absences'">Izostanci</button>
-    <button [class.active]="currentTab === 'messages'" (click)="currentTab = 'messages'">Poruke</button>
+    <button [class.active]="currentTab === 'grades'" (click)="currentTab = 'grades'">
+      Ocene
+    </button>
+    <button [class.active]="currentTab === 'absences'" (click)="currentTab = 'absences'">
+      Izostanci
+    </button>
+    <button [class.active]="currentTab === 'messages'" (click)="currentTab = 'messages'">
+      Poruke
+    </button>
   </div>
   <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
-  
+
+  <!-- TAB OCENE -->
   <div *ngIf="currentTab === 'grades'" class="tab-content">
     <div class="card">
       <h3>Unesi novu ocenu</h3>
       <form [formGroup]="gradeForm" (ngSubmit)="onGradeSubmit()">
-         <select formControlName="student_id"><option value="" disabled>-- Učenik --</option><option *ngFor="let s of students" [value]="s._id.$oid">{{s.name}}</option></select>
-         <input type="text" formControlName="subject" placeholder="Predmet">
-         <input type="number" formControlName="value" placeholder="Ocena">
-         <input type="date" formControlName="date">
+        <select formControlName="student_id">
+          <option value="" disabled>-- Učenik --</option>
+          <option *ngFor="let s of students" [value]="s._id.$oid">{{ s.name }}</option>
+        </select>
+        <input type="text" formControlName="subject" placeholder="Predmet" />
+        <input type="number" formControlName="value" placeholder="Ocena (1-5)" />
+        <input type="date" formControlName="date" />
         <button type="submit" [disabled]="gradeForm.invalid">Unesi ocenu</button>
       </form>
+    </div>
+    <div class="card">
+      <h3>Evidencija unetih ocena</h3>
+      <ul *ngIf="myGrades.length > 0; else noGrades">
+        <li *ngFor="let g of myGrades">
+          <span>
+            Učenik ID: {{ g.student_id }} | Predmet: {{ g.subject }} | Ocena: <strong>{{ g.value }}</strong> | Datum: {{ g.date | date }}
+          </span>
+        </li>
+      </ul>
+      <ng-template #noGrades>
+        <p>Nema unetih ocena.</p>
+      </ng-template>
     </div>
   </div>
 
@@ -24,16 +47,36 @@
     <div class="card">
       <h3>Evidentiraj izostanak</h3>
       <form [formGroup]="absenceForm" (ngSubmit)="onAbsenceSubmit()">
-         <select formControlName="student_id"><option value="" disabled>-- Učenik --</option><option *ngFor="let s of students" [value]="s._id.$oid">{{s.name}}</option></select>
-         <input type="date" formControlName="date_from" placeholder="Datum od">
-         <input type="date" formControlName="date_to" placeholder="Datum do">
-         <input type="text" formControlName="reason" placeholder="Razlog (opciono)">
+        <select formControlName="student_id">
+          <option value="" disabled>-- Učenik --</option>
+          <option *ngFor="let s of students" [value]="s._id.$oid">{{ s.name }}</option>
+        </select>
+        <input type="date" formControlName="date_from" />
+        <input type="date" formControlName="date_to" />
+        <input type="text" formControlName="reason" placeholder="Razlog (opciono)" />
         <button type="submit" [disabled]="absenceForm.invalid">Evidentiraj</button>
       </form>
     </div>
     <div class="card">
-        <h3>Evidencija izostanaka</h3>
-        <ul><li *ngFor="let a of myAbsences">Učenik: {{a.student_id}} | Period: {{a.date_from | date}} - {{a.date_to | date}} | Status: {{ a.justification_status }}</li></ul>
+      <h3>Evidencija izostanaka</h3>
+      
+      <ul *ngIf="myAbsences.length > 0; else noAbsences">
+        <li *ngFor="let a of myAbsences">
+          <span>
+            Učenik ID: {{ a.student_id }} | Period: {{ a.date_from | date }} - {{ a.date_to | date }} | Status: <strong>{{ a.justification_status }}</strong>
+          </span>
+          <button *ngIf="a.justification_status === 'OPRAVDANO' && a.justification_pdf_id"
+                  (click)="downloadPdf(a._id.$oid)"
+                  class="pdf-button">
+            Preuzmi Opravdanje
+          </button>
+        </li>
+      </ul>
+      <ng-template #noAbsences>
+        <p>Nema evidentiranih izostanaka.</p>
+      </ng-template>
+     
+
     </div>
   </div>
 
@@ -44,11 +87,11 @@
         <option value="" disabled>-- Izaberi roditelja --</option>
         <option *ngFor="let p of parents" [value]="p._id.$oid">{{ p.name }}</option>
       </select>
-
       <div class="chat-box" *ngIf="selectedParentId">
-        <div *ngFor="let msg of conversation" class="message">{{msg.sender_role}}: {{msg.content}}</div>
+        <div *ngFor="let msg of conversation" class="message">
+          <strong>{{ msg.sender_role }}:</strong> {{ msg.content }}
+        </div>
       </div>
-      
       <form [formGroup]="messageForm" (ngSubmit)="onMessageSubmit()" *ngIf="selectedParentId">
         <textarea formControlName="content" placeholder="Napišite poruku..."></textarea>
         <button type="submit" [disabled]="messageForm.invalid">Pošalji</button>

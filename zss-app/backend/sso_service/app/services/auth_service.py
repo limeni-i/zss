@@ -2,7 +2,9 @@ import jwt
 import datetime
 from flask import current_app
 from ..extensions import mongo, bcrypt
-from ..models.user_model import User # Dodajte ovaj import
+from ..models.user_model import User
+from bson import ObjectId, json_util
+import json
 
 class AuthService:
 
@@ -41,3 +43,15 @@ class AuthService:
             return {'token': token}, 200
         
         return {'error': 'Neispravan email ili lozinka'}, 401
+    
+    
+    @staticmethod
+    def get_user_by_id(user_id):
+        users_collection = mongo.db.users
+        user = users_collection.find_one(
+            {'_id': ObjectId(user_id)},
+            { 'password': 0 }
+        )
+        if not user:
+            return {'error': 'Korisnik nije pronađen'}, 404
+        return json.loads(json_util.dumps(user)), 200

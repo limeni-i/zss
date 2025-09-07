@@ -41,4 +41,16 @@ export class StudentDashboardComponent implements OnInit {
       setTimeout(() => this.successMessage = null, 3000);
     });
   }
+
+  downloadGradesPdf() {
+  this.schoolService.getGradesPdf().subscribe(blob => {
+    const a = document.createElement('a');
+    const objectUrl = URL.createObjectURL(blob);
+    a.href = objectUrl;
+    a.download = 'svedocanstvo.pdf';
+    a.click();
+    URL.revokeObjectURL(objectUrl);
+  });
+}
+
 }

@@ -1,4 +1,3 @@
-# backend/sso_service/app/models/user_model.py
 from enum import Enum
 from ..extensions import bcrypt
 

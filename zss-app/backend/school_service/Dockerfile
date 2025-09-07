@@ -10,4 +10,7 @@ COPY . .
 
 EXPOSE 5003
 
+COPY DejaVuSans.ttf /usr/local/lib/python3.9/site-packages/fpdf/font/
+COPY DejaVuSans-Bold.ttf /usr/local/lib/python3.9/site-packages/fpdf/font/
+
 CMD ["python", "run.py"]

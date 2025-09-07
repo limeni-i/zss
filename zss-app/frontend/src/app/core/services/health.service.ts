@@ -30,4 +30,10 @@ export class HealthService {
   rejectRequest(requestId: string): Observable<any> {
     return this.http.put(`${this.apiUrl}/justifications/${requestId}/reject`, {});
   }
+
+  getJustificationPdf(requestId: string): Observable<Blob> {
+  return this.http.get(`${this.apiUrl}/justifications/${requestId}/export-pdf`, {
+    responseType: 'blob'
+  });
+}
 }
