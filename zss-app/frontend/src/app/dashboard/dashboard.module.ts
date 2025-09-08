@@ -10,6 +10,7 @@ import { StudentDashboardComponent } from './student-dashboard/student-dashboard
 import { TeacherDashboardComponent } from './teacher-dashboard/teacher-dashboard.component';
 import { ParentDashboardComponent } from './parent-dashboard/parent-dashboard.component';
 import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard.component';
+import { CalendarModule } from 'angular-calendar';
 
 
 @NgModule({
@@ -26,7 +27,8 @@ import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard.compo
     CommonModule,
     DashboardRoutingModule,
     ReactiveFormsModule,
-    FormsModule
+    FormsModule,
+    CalendarModule
   ]
 })
 

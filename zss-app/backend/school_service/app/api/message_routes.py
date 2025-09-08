@@ -18,3 +18,13 @@ def send_message(current_user):
 def get_conversation(current_user, other_user_id):
     response, status_code = SchoolService.get_conversation(current_user['user_id'], other_user_id)
     return response, status_code
+
+
+@message_bp.route('/consultations/request', methods=['POST'])
+@token_required
+def send_consultation_request_route(current_user):
+    if current_user['role'] != 'NASTAVNIK':
+        return jsonify({'message': 'Pristup odbijen'}), 403
+    data = request.get_json()
+    response, status_code = SchoolService.send_consultation_request(current_user['user_id'], data)
+    return jsonify(response), status_code

@@ -37,3 +37,17 @@ def reject_request(current_user, request_id):
         request_id, current_user['user_id'], "ODBIJEN", current_app.config
     )
     return jsonify(response), status_code
+
+@justification_bp.route('/consultations/request', methods=['POST'])
+def create_consultation_request_route():
+    data = request.get_json()
+    response, status_code = HealthService.create_consultation_request(data)
+    return jsonify(response), status_code
+
+@justification_bp.route('/consultations', methods=['GET'])
+@token_required
+def get_consultation_requests_route(current_user):
+    if current_user['role'] != 'LEKAR':
+        return jsonify({'message': 'Pristup odbijen'}), 403
+    response, status_code = HealthService.get_consultation_requests_for_doctor(current_user['user_id'])
+    return response, status_code

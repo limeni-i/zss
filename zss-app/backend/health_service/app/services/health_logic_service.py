@@ -4,19 +4,76 @@ from bson import ObjectId, json_util
 import json
 import requests
 from fpdf import FPDF
+from ..models.timeslot_model import TimeSlot
+from datetime import datetime, timedelta
 
 class HealthService:
 
     @staticmethod
-    def schedule_appointment(patient_id, data):
-        mongo.db.appointments.insert_one({'patient_id': patient_id, 'doctor_id': data['doctor_id'], 'date': data['date'], 'status': 'ZAKAZAN'})
-        return {'message': 'Pregled uspešno zakazan'}, 201
+    def create_timeslots_for_day(doctor_id, data):
+        day_str = data['date']
+        start_hour = int(data['start_hour'])
+        end_hour = int(data['end_hour'])
+        
+        day = datetime.strptime(day_str, '%Y-%m-%d')
+        
+        new_slots = []
+        current_time = day.replace(hour=start_hour, minute=0, second=0, microsecond=0)
+        end_time_of_day = day.replace(hour=end_hour, minute=0, second=0, microsecond=0)
+
+        while current_time < end_time_of_day:
+            end_of_slot = current_time + timedelta(minutes=30)
+            slot = TimeSlot(
+                doctor_id=doctor_id,
+                start_time=current_time,
+                end_time=end_of_slot
+            )
+            slot_doc = slot.__dict__
+
+            if slot_doc['title'] == 'Slobodan termin':
+                del slot_doc['title']
+            new_slots.append(slot_doc)
+
+            current_time = end_of_slot
+
+        if new_slots:
+            mongo.db.timeslots.insert_many(new_slots)
+        
+        return {'message': f'Kreirano {len(new_slots)} novih termina.'}, 201
 
     @staticmethod
-    def get_appointments_for_user(user_id, user_role):
-        query = {'patient_id': user_id} if user_role in ['PACIJENT', 'UCENIK', 'RODITELJ'] else {'doctor_id': user_id}
-        appointments_cursor = mongo.db.appointments.find(query)
-        return json.loads(json_util.dumps(list(appointments_cursor))), 200
+    def get_timeslots_for_doctor(doctor_id):
+        slots_cursor = mongo.db.timeslots.find({'doctor_id': doctor_id})
+        return json.loads(json_util.dumps(list(slots_cursor))), 200
+
+    @staticmethod
+    def get_free_timeslots(doctor_id):
+        query = {
+            'doctor_id': doctor_id,
+            'status': 'SLOBODAN',
+            'start_time': {'$gte': datetime.utcnow()} 
+        }
+        slots_cursor = mongo.db.timeslots.find(query).sort('start_time', 1)
+        return json.loads(json_util.dumps(list(slots_cursor))), 200
+
+    @staticmethod
+    def book_timeslot(slot_id, patient_id):
+        update_result = mongo.db.timeslots.find_one_and_update(
+            {'_id': ObjectId(slot_id), 'status': 'SLOBODAN'},
+            {'$set': {
+                'status': 'REZERVISAN',
+                'patient_id': patient_id,
+                'title': 'Rezervisan termin'
+            }}
+        )
+        if not update_result:
+            return {'message': 'Termin nije dostupan ili ne postoji'}, 409 
+        return {'message': 'Termin uspešno rezervisan'}, 200
+
+    @staticmethod
+    def get_appointments_for_patient(patient_id):
+        slots_cursor = mongo.db.timeslots.find({'patient_id': patient_id})
+        return json.loads(json_util.dumps(list(slots_cursor))), 200
 
     @staticmethod
     def create_justification_request(data):
@@ -99,3 +156,41 @@ class HealthService:
             return {'message': 'Greška pri komunikaciji sa školskim servisom', 'error': str(e)}, 500
         
         return {'message': f'Zahtev uspešno {new_status.lower()}'}, 200
+    
+    
+    
+    @staticmethod
+    def check_completed_appointment(data):
+        patient_id = data['patient_id']
+        doctor_id = data['doctor_id']
+        date_from = datetime.strptime(data['date_from'], '%Y-%m-%d')
+        date_to = datetime.strptime(data['date_to'], '%Y-%m-%d')
+
+        query = {
+            'patient_id': patient_id,
+            'doctor_id': doctor_id,
+            'status': 'REZERVISAN', 
+            'start_time': {
+                '$gte': date_from,
+                '$lte': date_to + timedelta(days=1)
+            }
+        }
+        appointment = mongo.db.timeslots.find_one(query)
+        return {'appointment_exists': appointment is not None}, 200
+    
+    @staticmethod
+    def create_consultation_request(data):
+        from ..models.consultation_request_model import ConsultationRequest
+        new_req = ConsultationRequest(
+            teacher_id=data['teacher_id'], 
+            student_id=data['student_id'],
+            doctor_id=data['doctor_id'], 
+            message=data['message']
+        )
+        mongo.db.consultation_requests.insert_one(new_req.to_document())
+        return {'message': 'Zahtev za konsultacije uspešno poslat'}, 201
+
+    @staticmethod
+    def get_consultation_requests_for_doctor(doctor_id):
+        req_cursor = mongo.db.consultation_requests.find({'doctor_id': doctor_id})
+        return json.loads(json_util.dumps(list(req_cursor))), 200

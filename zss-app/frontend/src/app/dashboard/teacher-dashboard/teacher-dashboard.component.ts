@@ -17,7 +17,10 @@ export class TeacherDashboardComponent implements OnInit {
   myAbsences: any[] = [];
   myGrades: any[] = [];
   successMessage: string | null = null;
-  currentTab: 'grades' | 'absences' | 'messages' = 'grades';
+  currentTab: 'grades' | 'absences' | 'messages' | 'consultations' = 'grades';
+
+  consultationForm!: FormGroup;
+  doctors: any[] = [];
 
   messageForm!: FormGroup;
   selectedParentId: string = '';
@@ -32,6 +35,7 @@ export class TeacherDashboardComponent implements OnInit {
   ngOnInit(): void {
     this.loadInitialData();
     this.buildForms();
+    this.authService.getUsersByRole('LEKAR').subscribe(data => this.doctors = data);
   }
 
   loadInitialData() {
@@ -64,6 +68,12 @@ export class TeacherDashboardComponent implements OnInit {
       content: ['', Validators.required],
       receiver_id: ['', Validators.required],
       receiver_role: ['RODITELJ']
+    });
+
+    this.consultationForm = this.fb.group({
+      student_id: ['', Validators.required],
+      doctor_id: ['', Validators.required],
+      message: ['', Validators.required]
     });
   }
 
@@ -112,6 +122,13 @@ export class TeacherDashboardComponent implements OnInit {
     a.download = 'opravdanje.pdf';
     a.click();
     URL.revokeObjectURL(objectUrl);
-  });
-}
+    });
+  }
+
+  onConsultationSubmit() {
+  if (this.consultationForm.invalid) return;  
+  this.schoolService.sendConsultationRequest(this.consultationForm.value).subscribe(() => {
+    this.handleSuccess("Zahtev za konsultacije uspešno poslat!", this.consultationForm);
+    });
+  }
 }

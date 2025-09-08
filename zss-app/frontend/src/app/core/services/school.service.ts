@@ -49,4 +49,8 @@ export class SchoolService {
     });
   }
 
+  sendConsultationRequest(data: any): Observable<any> {
+  return this.http.post(`${this.apiUrl}/consultations/request`, data);
+}
+
 }

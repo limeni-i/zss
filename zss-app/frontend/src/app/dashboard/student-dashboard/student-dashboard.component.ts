@@ -13,6 +13,7 @@ export class StudentDashboardComponent implements OnInit {
   doctors: any[] = [];
   selectedDoctorId: string = '';
   successMessage: string | null = null;
+  errorMessage: string | null = null;
 
   constructor(
     private schoolService: SchoolService,
@@ -35,11 +36,18 @@ export class StudentDashboardComponent implements OnInit {
       return;
     }
     const payload = { doctor_id: this.selectedDoctorId };
-    this.schoolService.requestJustification(absence._id.$oid, payload).subscribe(() => {
-      this.successMessage = "Zahtev uspešno poslat!";
-      this.loadData();
-      setTimeout(() => this.successMessage = null, 3000);
-    });
+    this.schoolService.requestJustification(absence._id.$oid, payload).subscribe({
+  next: () => {
+    this.successMessage = "Zahtev uspešno poslat!";
+    this.loadData();
+    setTimeout(() => this.successMessage = null, 3000);
+  },
+  error: (err) => {
+    this.errorMessage = err.error.message || 'Došlo je do nepoznate greške.';
+    setTimeout(() => this.errorMessage = null, 5000);
+  }
+});
+
   }
 
   downloadGradesPdf() {

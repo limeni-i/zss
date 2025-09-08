@@ -11,12 +11,21 @@ export class HealthService {
 
   constructor(private http: HttpClient) { }
 
-  getAppointments(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/appointments`);
+  createTimeslotsForDay(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/timeslots/create-day`, data);
   }
+  getDoctorTimeslots(doctorId: string): Observable<any[]> {
+  return this.http.get<any[]>(`${this.apiUrl}/timeslots/doctor/${doctorId}`);
+}
   
-  scheduleAppointment(data: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/appointments`, data);
+  getFreeTimeslots(doctorId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/timeslots/free/${doctorId}`);
+  }
+  bookTimeslot(slotId: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/timeslots/${slotId}/book`, {});
+  }
+  getPatientAppointments(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/timeslots/patient`);
   }
 
   getJustificationRequests(): Observable<any[]> {
@@ -34,6 +43,12 @@ export class HealthService {
   getJustificationPdf(requestId: string): Observable<Blob> {
   return this.http.get(`${this.apiUrl}/justifications/${requestId}/export-pdf`, {
     responseType: 'blob'
-  });
-}
+    });
+  }
+
+  getConsultationRequests(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/consultations`);
+  }
+
+
 }

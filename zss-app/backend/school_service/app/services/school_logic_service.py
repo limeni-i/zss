@@ -34,25 +34,80 @@ class SchoolService:
 
     @staticmethod
     def request_justification(absence_id, student_id, data):
-        mongo.db.absences.update_one({'_id': ObjectId(absence_id), 'student_id': student_id}, {'$set': {'justification_status': 'U_PROCESU', 'requested_doctor_id': data['doctor_id']}})
+        existing_pending_request = mongo.db.absences.find_one({
+            'student_id': student_id,
+            'justification_status': 'U_PROCESU'
+        })
+        
+        if existing_pending_request:
+            return {'message': 'Već imate jedan zahtev za opravdanje na čekanju. Molimo sačekajte da se on obradi.'}, 400
+
+        mongo.db.absences.update_one(
+            {'_id': ObjectId(absence_id), 'student_id': student_id},
+            {'$set': {
+                'justification_status': 'U_PROCESU',
+                'requested_doctor_id': data['doctor_id']
+            }}
+        )
+
         health_service_url = f"{current_app.config['HEALTH_SERVICE_URL']}/justifications/request"
         try:
-            payload = {'student_id': student_id, 'doctor_id': data['doctor_id'], 'absence_id': absence_id, 'reason_from_student': data.get('reason', 'Molim za opravdanje.')}
+            payload = {
+                'student_id': student_id,
+                'doctor_id': data['doctor_id'],
+                'absence_id': absence_id,
+                'reason_from_student': data.get('reason', 'Molim za opravdanje.')
+            }
             response = requests.post(health_service_url, json=payload)
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
-            mongo.db.absences.update_one({'_id': ObjectId(absence_id)}, {'$set': {'justification_status': 'NIJE_ZATRAZENO', 'requested_doctor_id': None}})
+            mongo.db.absences.update_one(
+                {'_id': ObjectId(absence_id)},
+                {'$set': {'justification_status': 'NIJE_ZATRAZENO', 'requested_doctor_id': None}}
+            )
             return {'message': 'Greška pri slanju zahteva lekaru', 'error': str(e)}, 500
+            
         return {'message': 'Zahtev za opravdanje uspešno poslat'}, 200
 
     @staticmethod
     def update_absence_status_from_doctor(pdf_file, data):
-        update_data = {'justification_status': data['new_status'], 'is_excused': data['new_status'] == 'OPRAVDANO'}
+        absence_id = data['absence_id']
+        new_status = data['new_status']
+
+        update_data = {
+            'justification_status': new_status,
+            'is_excused': new_status == 'OPRAVDANO'
+        }
+
         if pdf_file:
             fs = gridfs.GridFS(mongo.db)
             pdf_id = fs.put(pdf_file.read(), filename=pdf_file.filename)
             update_data['justification_pdf_id'] = str(pdf_id)
-        mongo.db.absences.update_one({'_id': ObjectId(data['absence_id'])}, {'$set': update_data})
+
+        updated_absence = mongo.db.absences.find_one_and_update(
+            {'_id': ObjectId(absence_id)},
+            {'$set': update_data},
+            return_document=True
+        )
+
+        if not updated_absence:
+            return {'message': 'Izostanak za ažuriranje nije pronađen'}, 404
+        
+        if new_status == 'OPRAVDANO':
+            from ..models.message_model import Message
+
+            teacher_id = updated_absence.get('teacher_id')
+            student_id = updated_absence.get('student_id')
+            message_content = f"Izostanak za učenika (ID: {student_id}) je opravdan od strane lekara. Opravdanje je dostupno za preuzimanje na panelu."
+
+            new_message = Message(
+                sender_id="SISTEM",
+                receiver_id=teacher_id,
+                content=message_content,
+                sender_role="SISTEM",
+                receiver_role="NASTAVNIK"
+            )
+            mongo.db.messages.insert_one(new_message.to_document())
         return {'message': 'Status izostanka ažuriran'}, 200
 
     @staticmethod
@@ -109,3 +164,20 @@ class SchoolService:
             pdf.cell(50, 10, grade['date'], 1)
             pdf.ln()
         return bytes(pdf.output())
+    
+    
+    @staticmethod
+    def send_consultation_request(teacher_id, data):
+        health_url = f"{current_app.config['HEALTH_SERVICE_URL']}/consultations/request"
+        try:
+            payload = {
+                'teacher_id': teacher_id,
+                'student_id': data['student_id'],
+                'doctor_id': data['doctor_id'],
+                'message': data['message']
+            }
+            response = requests.post(health_url, json=payload)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            return {'message': 'Greška pri slanju zahteva zdravstvenom sistemu', 'error': str(e)}, 500
+        return {'message': 'Zahtev uspešno poslat'}, 200

@@ -1,34 +1,50 @@
 <div class="dashboard-container">
   <h2>Pacijent Panel</h2>
+  <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+  <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
 
   <div class="card">
     <h3>Zakaži novi pregled</h3>
-    <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label for="doctor">Izaberi lekara</label>
-        <select id="doctor" formControlName="doctor_id">
-          <option value="" disabled>-- Lekari --</option>
-          <option *ngFor="let doc of doctors" [value]="doc._id.$oid">{{ doc.name }}</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="date">Datum i vreme</label>
-        <input id="date" type="datetime-local" formControlName="date">
-      </div>
+    
+    <div class="form-group">
+      <label for="doctor">1. Izaberi lekara</label>
+      <select id="doctor" [(ngModel)]="selectedDoctorId" (change)="onDoctorSelected()">
+        <option value="" disabled>-- Lekari --</option>
+        <option *ngFor="let doc of doctors" [value]="doc._id.$oid">{{ doc.name }}</option>
+      </select>
+    </div>
 
-      <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
-      <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+    <div *ngIf="selectedDoctorId">
+      <p><strong>2. Izaberi dan u kalendaru</strong></p>
+      <mwl-calendar-month-view
+        [viewDate]="viewDate"
+        [events]="events"
+        (dayClicked)="dayClicked($event.day)">
+      </mwl-calendar-month-view>
 
-      <button type="submit" [disabled]="appointmentForm.invalid">Zakaži</button>
-    </form>
+      <div *ngIf="activeDayIsOpen" class="day-slots">
+        <h4>Slobodni termini za {{ viewDate | date:'dd.MM.yyyy' }}</h4>
+        <div *ngIf="availableSlotsForSelectedDay.length > 0; else noSlots">
+          <ul class="slots-list">
+            <li *ngFor="let slot of availableSlotsForSelectedDay">
+              <span>{{ slot.start | date:'HH:mm' }} - {{ slot.end | date:'HH:mm' }}</span>
+              <button (click)="bookSlot(slot.meta.slot_id)">Rezerviši</button>
+            </li>
+          </ul>
+        </div>
+        <ng-template #noSlots>
+          <p>Nema slobodnih termina za izabrani dan.</p>
+        </ng-template>
+      </div>
+    </div>
   </div>
 
   <div class="card">
-    <h3>Moji Pregledi</h3>
-    <div *ngIf="appointments.length > 0; else noAppointments">
+    <h3>Moji rezervisani termini</h3>
+    <div *ngIf="myAppointments.length > 0; else noAppointments">
       <ul>
-        <li *ngFor="let app of appointments">
-          Datum: {{ app.date | date:'dd.MM.yyyy HH:mm' }} | Status: {{ app.status }} | Doktor ID: {{ app.doctor_id }}
+        <li *ngFor="let app of myAppointments">
+          Početak: {{ app.start_time | date:'dd.MM.yyyy HH:mm' }} | Status: {{ app.status }} | Doktor ID: {{ app.doctor_id }}
         </li>
       </ul>
     </div>

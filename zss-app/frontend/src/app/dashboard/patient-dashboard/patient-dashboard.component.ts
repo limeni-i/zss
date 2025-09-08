@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from 'src/app/core/services/auth.service';
 import { HealthService } from 'src/app/core/services/health.service';
-import { filter, map } from 'rxjs/operators';
+import { CalendarEvent } from 'angular-calendar';
+import { map } from 'rxjs/operators';
+import { isSameDay, isSameMonth } from 'date-fns';
 
 @Component({
   selector: 'app-patient-dashboard',
@@ -10,50 +11,90 @@ import { filter, map } from 'rxjs/operators';
   styleUrls: ['./patient-dashboard.component.scss']
 })
 export class PatientDashboardComponent implements OnInit {
-  appointments: any[] = [];
+  myAppointments: any[] = [];
   doctors: any[] = [];
-  appointmentForm!: FormGroup;
+  selectedDoctorId: string = '';
+  viewDate: Date = new Date();
+  events: CalendarEvent[] = [];
+  activeDayIsOpen: boolean = false;
+  availableSlotsForSelectedDay: CalendarEvent[] = [];
+
   successMessage: string | null = null;
   errorMessage: string | null = null;
 
   constructor(
     private healthService: HealthService,
-    private authService: AuthService,
-    private fb: FormBuilder
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    this.loadAppointments();
-    this.loadDoctors();
+    this.loadMyInitialData();
+    this.authService.getUsersByRole('LEKAR').subscribe(data => this.doctors = data);
+  }
 
-    this.appointmentForm = this.fb.group({
-      doctor_id: ['', Validators.required],
-      date: ['', Validators.required]
+  loadMyInitialData(): void {
+    this.healthService.getPatientAppointments().subscribe(data => this.myAppointments = data);
+  }
+
+  onDoctorSelected(): void {
+    if (!this.selectedDoctorId) return;
+    
+    this.activeDayIsOpen = false;
+    this.availableSlotsForSelectedDay = [];
+
+    this.healthService.getDoctorTimeslots(this.selectedDoctorId).pipe(
+      map(slots => slots.map(slot => {
+        const startTime = new Date(slot.start_time.$date);
+        const endTime = new Date(slot.end_time.$date);
+
+        return {
+          start: startTime,
+          end: endTime,
+          title: slot.status === 'SLOBODAN' ? `Slobodan` : `Zauzet`,
+          color: { primary: slot.status === 'SLOBODAN' ? '#1e90ff' : '#ad2121', secondary: '#D1E8FF' },
+          meta: {
+            slot_id: slot._id.$oid,
+            status: slot.status
+          }
+        };
+      }))
+    ).subscribe(events => {
+        this.events = events;
     });
   }
-
-  loadAppointments(): void {
-    this.healthService.getAppointments().subscribe(data => this.appointments = data);
+  
+  dayClicked({ date, events }: { date: Date; events: CalendarEvent[] }): void {
+    if (isSameMonth(date, this.viewDate)) {
+      if ((isSameDay(this.viewDate, date) && this.activeDayIsOpen) || events.length === 0) {
+        this.activeDayIsOpen = false;
+      } else {
+        this.activeDayIsOpen = true;
+        this.viewDate = date;
+        this.availableSlotsForSelectedDay = events.filter(event => event.meta.status === 'SLOBODAN');
+      }
+    } else {
+       this.viewDate = date;
+       this.activeDayIsOpen = false;
+       this.availableSlotsForSelectedDay = [];
+    }
   }
 
-  loadDoctors(): void {
-    this.authService.getUsers().pipe(
-      map(users => users.filter(user => user.role === 'LEKAR'))
-    ).subscribe(data => this.doctors = data);
-  }
-
-  onSubmit(): void {
-    if (this.appointmentForm.invalid) return;
+  bookSlot(slotId: string): void {
     this.successMessage = null;
     this.errorMessage = null;
 
-    this.healthService.scheduleAppointment(this.appointmentForm.value).subscribe({
+    this.healthService.bookTimeslot(slotId).subscribe({
       next: () => {
-        this.successMessage = "Pregled je uspešno zakazan!";
-        this.loadAppointments();
-        this.appointmentForm.reset();
+        this.successMessage = "Termin je uspešno rezervisan!";
+        this.loadMyInitialData();
+        this.onDoctorSelected();
+        this.activeDayIsOpen = false;
+        setTimeout(() => this.successMessage = null, 4000);
       },
-      error: (err) => this.errorMessage = "Došlo je do greške."
+      error: (err) => {
+        this.errorMessage = "Došlo je do greške ili je termin u međuvremenu zauzet.";
+        setTimeout(() => this.errorMessage = null, 4000);
+      }
     });
   }
 }

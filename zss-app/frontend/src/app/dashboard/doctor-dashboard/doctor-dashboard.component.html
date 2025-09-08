@@ -20,9 +20,53 @@
             <button (click)="approve(req._id.$oid)">Odobri</button>
             <button (click)="reject(req._id.$oid)">Odbij</button>
           </td>
-          
         </tr>
       </tbody>
     </table>
+  </div>
+  <div class="card">
+    <h3>Moj kalendar i termini</h3>
+    <form [formGroup]="dayForm" (ngSubmit)="createDay()">
+      <input type="date" formControlName="date" />
+      <input
+        type="number"
+        formControlName="start_hour"
+        placeholder="Početak (npr. 9)"
+      />
+      <input
+        type="number"
+        formControlName="end_hour"
+        placeholder="Kraj (npr. 17)"
+      />
+      <button type="submit">Otvori termine za dan</button>
+    </form>
+    <mwl-calendar-month-view [viewDate]="viewDate" [events]="events">
+    </mwl-calendar-month-view>
+  </div>
+  <div class="card">
+    <h3>Zahtevi za konsultacije od nastavnika</h3>
+    <div *ngIf="consultationRequests.length > 0; else noConsultations">
+      <table>
+        <thead>
+          <tr>
+            <th>Nastavnik ID</th>
+            <th>Učenik ID</th>
+            <th>Poruka</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let req of consultationRequests">
+            <td>{{ req.teacher_id }}</td>
+            <td>{{ req.student_id }}</td>
+            <td>{{ req.message }}</td>
+            <td>{{ req.status }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #noConsultations
+      ><p>Nema novih zahteva za konsultacije.</p></ng-template
+    >
   </div>
 </div>

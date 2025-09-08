@@ -98,3 +98,33 @@ button:not(:disabled):hover {
   border-radius: 4px;
   margin-bottom: 1rem;
 }
+
+.day-slots {
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+
+.slots-list {
+  list-style-type: none;
+  padding: 0;
+  
+  li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #f0f0f0;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    button {
+      width: auto;
+      padding: 5px 10px;
+      font-size: 0.9rem;
+    }
+  }
+}
