@@ -28,14 +28,6 @@ export class AuthService {
     localStorage.removeItem('authToken');
   }
 
-  getToken(): string | null {
-    return localStorage.getItem('authToken');
-  }
-
-  isLoggedIn(): boolean {
-    return !!this.getToken();
-  }
-
   getUsers(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/users`);
   }
@@ -45,4 +37,13 @@ export class AuthService {
     map(users => users.filter(user => user.role === role))
   );
 }
+
+  getToken(): string | null {
+    return localStorage.getItem('authToken');
+  }
+
+  isLoggedIn(): boolean {
+    return !!this.getToken();
+  }
+
 }
