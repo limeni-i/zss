@@ -28,13 +28,6 @@ def request_justification(current_user, absence_id):
     data = request.get_json()
     response, status_code = SchoolService.request_justification(absence_id, current_user['user_id'], data)
     return jsonify(response), status_code
- 
-@absence_bp.route('/absences/update-status', methods=['PUT'])
-def update_status_from_doctor():
-    pdf_file = request.files.get('pdf_file')
-    data = request.form.to_dict()
-    response, status_code = SchoolService.update_absence_status_from_doctor(pdf_file, data)
-    return jsonify(response), status_code
 
 
 @absence_bp.route('/absences/<absence_id>/download-justification', methods=['GET'])
@@ -53,3 +46,12 @@ def download_justification(current_user, absence_id):
         mimetype="application/pdf",
         headers={"Content-Disposition": "attachment;filename=opravdanje.pdf"}
     )
+ 
+@absence_bp.route('/absences/update-status', methods=['PUT'])
+def update_status_from_doctor():
+    pdf_file = request.files.get('pdf_file')
+    data = request.form.to_dict()
+    response, status_code = SchoolService.update_absence_status_from_doctor(pdf_file, data)
+    return jsonify(response), status_code
+
+

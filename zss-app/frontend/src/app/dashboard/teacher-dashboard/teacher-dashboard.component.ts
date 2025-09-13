@@ -106,22 +106,22 @@ export class TeacherDashboardComponent implements OnInit {
     setTimeout(() => this.successMessage = null, 3000);
   }
 
+  downloadPdf(absenceId: string) {
+    this.schoolService.downloadJustificationPdf(absenceId).subscribe(blob => {
+      const a = document.createElement('a');
+      const objectUrl = URL.createObjectURL(blob);
+      a.href = objectUrl;
+      a.download = 'opravdanje.pdf';
+      a.click();
+      URL.revokeObjectURL(objectUrl);
+      });
+    }
+
   loadConversation() {
     if (!this.selectedParentId) return;
     this.messageForm.patchValue({ receiver_id: this.selectedParentId });
     this.schoolService.getConversation(this.selectedParentId).subscribe(data => {
       this.conversation = data;
-    });
-  }
-
-  downloadPdf(absenceId: string) {
-  this.schoolService.downloadJustificationPdf(absenceId).subscribe(blob => {
-    const a = document.createElement('a');
-    const objectUrl = URL.createObjectURL(blob);
-    a.href = objectUrl;
-    a.download = 'opravdanje.pdf';
-    a.click();
-    URL.revokeObjectURL(objectUrl);
     });
   }
 
