@@ -13,13 +13,6 @@ def send_message(current_user):
     response, status_code = SchoolService.send_message(current_user['user_id'], current_user['role'], data)
     return jsonify(response), status_code
 
-@message_bp.route('/messages/conversation/<other_user_id>', methods=['GET'])
-@token_required
-def get_conversation(current_user, other_user_id):
-    response, status_code = SchoolService.get_conversation(current_user['user_id'], other_user_id)
-    return response, status_code
-
-
 @message_bp.route('/consultations/request', methods=['POST'])
 @token_required
 def send_consultation_request_route(current_user):
@@ -28,3 +21,9 @@ def send_consultation_request_route(current_user):
     data = request.get_json()
     response, status_code = SchoolService.send_consultation_request(current_user['user_id'], data)
     return jsonify(response), status_code
+
+@message_bp.route('/messages/conversation/<other_user_id>', methods=['GET'])
+@token_required
+def get_conversation(current_user, other_user_id):
+    response, status_code = SchoolService.get_conversation(current_user['user_id'], other_user_id)
+    return response, status_code

@@ -32,42 +32,6 @@ class SchoolService:
         absences_cursor = mongo.db.absences.find(query)
         return json.loads(json_util.dumps(list(absences_cursor))), 200
 
-    @staticmethod
-    def request_justification(absence_id, student_id, data):
-        existing_pending_request = mongo.db.absences.find_one({
-            'student_id': student_id,
-            'justification_status': 'U_PROCESU'
-        })
-        
-        if existing_pending_request:
-            return {'message': 'Već imate jedan zahtev za opravdanje na čekanju. Molimo sačekajte da se on obradi.'}, 400
-
-        mongo.db.absences.update_one(
-            {'_id': ObjectId(absence_id), 'student_id': student_id},
-            {'$set': {
-                'justification_status': 'U_PROCESU',
-                'requested_doctor_id': data['doctor_id']
-            }}
-        )
-
-        health_service_url = f"{current_app.config['HEALTH_SERVICE_URL']}/justifications/request"
-        try:
-            payload = {
-                'student_id': student_id,
-                'doctor_id': data['doctor_id'],
-                'absence_id': absence_id,
-                'reason_from_student': data.get('reason', 'Molim za opravdanje.')
-            }
-            response = requests.post(health_service_url, json=payload)
-            response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            mongo.db.absences.update_one(
-                {'_id': ObjectId(absence_id)},
-                {'$set': {'justification_status': 'NIJE_ZATRAZENO', 'requested_doctor_id': None}}
-            )
-            return {'message': 'Greška pri slanju zahteva lekaru', 'error': str(e)}, 500
-            
-        return {'message': 'Zahtev za opravdanje uspešno poslat'}, 200
 
     @staticmethod
     def update_absence_status_from_doctor(pdf_file, data):
@@ -109,13 +73,45 @@ class SchoolService:
             )
             mongo.db.messages.insert_one(new_message.to_document())
         return {'message': 'Status izostanka ažuriran'}, 200
+    
 
     @staticmethod
-    def send_message(sender_id, sender_role, data):
-        from ..models.message_model import Message
-        new_message = Message(sender_id=sender_id, receiver_id=data['receiver_id'], content=data['content'], sender_role=sender_role, receiver_role=data['receiver_role'])
-        mongo.db.messages.insert_one(new_message.to_document())
-        return {'message': 'Poruka poslata'}, 201
+    def request_justification(absence_id, student_id, data):
+        existing_pending_request = mongo.db.absences.find_one({
+            'student_id': student_id,
+            'justification_status': 'U_PROCESU'
+        })
+        
+        if existing_pending_request:
+            return {'message': 'Već imate jedan zahtev za opravdanje na čekanju. Molimo sačekajte da se on obradi.'}, 400
+
+        mongo.db.absences.update_one(
+            {'_id': ObjectId(absence_id), 'student_id': student_id},
+            {'$set': {
+                'justification_status': 'U_PROCESU',
+                'requested_doctor_id': data['doctor_id']
+            }}
+        )
+
+        health_service_url = f"{current_app.config['HEALTH_SERVICE_URL']}/justifications/request"
+        try:
+            payload = {
+                'student_id': student_id,
+                'doctor_id': data['doctor_id'],
+                'absence_id': absence_id,
+                'reason_from_student': data.get('reason', 'Molim za opravdanje.')
+            }
+            response = requests.post(health_service_url, json=payload)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            mongo.db.absences.update_one(
+                {'_id': ObjectId(absence_id)},
+                {'$set': {'justification_status': 'NIJE_ZATRAZENO', 'requested_doctor_id': None}}
+            )
+            return {'message': 'Greška pri slanju zahteva lekaru', 'error': str(e)}, 500
+            
+        return {'message': 'Zahtev za opravdanje uspešno poslat'}, 200
+
 
     @staticmethod
     def get_conversation(user1_id, user2_id):
@@ -133,7 +129,31 @@ class SchoolService:
         pdf_id = ObjectId(absence['justification_pdf_id'])
         pdf_file_object = fs.get(pdf_id)
         return pdf_file_object.read()
-
+    
+    @staticmethod
+    def send_message(sender_id, sender_role, data):
+        from ..models.message_model import Message
+        new_message = Message(sender_id=sender_id, receiver_id=data['receiver_id'], content=data['content'], sender_role=sender_role, receiver_role=data['receiver_role'])
+        mongo.db.messages.insert_one(new_message.to_document())
+        return {'message': 'Poruka poslata'}, 201
+   
+    
+    @staticmethod
+    def send_consultation_request(teacher_id, data):
+        health_url = f"{current_app.config['HEALTH_SERVICE_URL']}/consultations/request"
+        try:
+            payload = {
+                'teacher_id': teacher_id,
+                'student_id': data['student_id'],
+                'doctor_id': data['doctor_id'],
+                'message': data['message']
+            }
+            response = requests.post(health_url, json=payload)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            return {'message': 'Greška pri slanju zahteva zdravstvenom sistemu', 'error': str(e)}, 500
+        return {'message': 'Zahtev uspešno poslat'}, 200
+    
     @staticmethod
     def export_grades_to_pdf(student_id):
         grades = list(mongo.db.grades.find({'student_id': student_id}))
@@ -164,20 +184,3 @@ class SchoolService:
             pdf.cell(50, 10, grade['date'], 1)
             pdf.ln()
         return bytes(pdf.output())
-    
-    
-    @staticmethod
-    def send_consultation_request(teacher_id, data):
-        health_url = f"{current_app.config['HEALTH_SERVICE_URL']}/consultations/request"
-        try:
-            payload = {
-                'teacher_id': teacher_id,
-                'student_id': data['student_id'],
-                'doctor_id': data['doctor_id'],
-                'message': data['message']
-            }
-            response = requests.post(health_url, json=payload)
-            response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            return {'message': 'Greška pri slanju zahteva zdravstvenom sistemu', 'error': str(e)}, 500
-        return {'message': 'Zahtev uspešno poslat'}, 200

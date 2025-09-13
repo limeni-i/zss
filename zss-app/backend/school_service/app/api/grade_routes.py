@@ -14,11 +14,6 @@ def create_grade(current_user):
     response, status_code = SchoolService.create_grade(current_user['user_id'], data)
     return jsonify(response), status_code
 
-@grade_bp.route('/grades', methods=['GET'])
-@token_required
-def get_grades(current_user):
-    response, status_code = SchoolService.get_grades_for_user(current_user['user_id'], current_user['role'])
-    return response, status_code
 
 @grade_bp.route('/grades/export-pdf', methods=['GET'])
 @token_required
@@ -33,3 +28,9 @@ def export_grades(current_user):
         mimetype="application/pdf",
         headers={"Content-Disposition": "attachment;filename=svedocanstvo.pdf"}
     )
+
+@grade_bp.route('/grades', methods=['GET'])
+@token_required
+def get_grades(current_user):
+    response, status_code = SchoolService.get_grades_for_user(current_user['user_id'], current_user['role'])
+    return response, status_code
